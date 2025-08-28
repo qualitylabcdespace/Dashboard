@@ -6,12 +6,21 @@
     <title>Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+
+        @font-face {
+            font-family: 'SukhumvitSetBold';
+            src: url('sukhumvit-set-bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        
         body {
             font-family: "Segoe UI";
             background: #121212;
             color: #f5f5f5;
             text-align: center;
             padding: 20px;
+            font-family: 'SukhumvitSetBold', sans-serif;
         }
 
         .stats {
@@ -20,6 +29,7 @@
             gap: 20px;
             flex-wrap: wrap;
             margin-bottom: 20px;
+            font-family: 'SukhumvitSetBold', sans-serif;
         }
 
         .card {
@@ -27,6 +37,7 @@
             padding: 15px;
             border-radius: 12px;
             min-width: 150px;
+            font-family: 'SukhumvitSetBold', sans-serif;
         }
 
         table {
@@ -35,23 +46,38 @@
             margin: 20px auto;
             border-collapse: collapse;
             background: #1e1e1e;
+            font-family: 'SukhumvitSetBold', sans-serif;
         }
 
         th,
         td {
             padding: 8px;
             border: 1px solid #333;
+            border-radius: 4%;
+            font-family: 'SukhumvitSetBold', sans-serif;
         }
 
         th {
             background: #ffd369;
             color: #121212;
+            font-family: 'SukhumvitSetBold', sans-serif;
+        }
+
+        .h2 {
+            font-family: 'SukhumvitSetBold', sans-serif;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 2em;
+            color: #ffd369;
+            font-family: 'SukhumvitSetBold', sans-serif;
         }
     </style>
 </head>
 
 <body>
-    <h1>📊 Dashboard</h1>
+    <h1>Dashboard</h1>
     <div class="stats">
         <div class="card">
             <h2 id="totalUsers">0</h2>
@@ -73,7 +99,7 @@
 
     <canvas id="chart" style="max-width:600px; margin:auto;"></canvas>
 
-    <h2 style="margin-top:30px;">📜 Log ล่าสุด</h2>
+    <h2 style="margin-top:30px;"> Log ล่าสุด</h2>
     <table>
         <thead>
             <tr>
@@ -87,7 +113,7 @@
     </table>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJu2MFOEWWU1x0rfuRWOVYGawTfOW4ESev7fCFQ9Et1WmikErVqbjVvAbMrC1aXG0xIQ/exec"; // /exec
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4iQkPg5lc0METW6WzDfNlWRuCRQXSJ474yGEWoZoQMZM39ZF24-T4cWu6WYdWrtwl/exec"; // /exec
         let chartInstance;
 
         async function loadStats() {
