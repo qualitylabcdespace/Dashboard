@@ -3,156 +3,182 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Lumora School of Magic</title>
 
-        @font-face {
-            font-family: 'SukhumvitSetBold';
-            src: url('sukhumvit-set-bold.ttf') format('truetype');
-            font-weight: bold;
-            font-style: normal;
-        }
-        
+    <style>
         body {
-            font-family: "Segoe UI";
-            background: #121212;
-            color: #f5f5f5;
+            font-family: 'SukhumvitSetBold', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
             text-align: center;
             padding: 20px;
-            font-family: 'SukhumvitSetBold', sans-serif;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        #clock {
+            font-size: 1.2rem;
+            margin-top: 5px;
         }
 
         .stats {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            font-family: 'SukhumvitSetBold', sans-serif;
-        }
-
-        .card {
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 12px;
-            min-width: 150px;
-            font-family: 'SukhumvitSetBold', sans-serif;
+            margin: 20px;
+            font-size: 1.2rem;
         }
 
         table {
+            border-collapse: collapse;
             width: 90%;
             max-width: 800px;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background: #1e1e1e;
-            font-family: 'SukhumvitSetBold', sans-serif;
+            margin-bottom: 20px;
         }
 
-        th,
-        td {
+        table th,
+        table td {
+            border: 1px solid #fff;
             padding: 8px;
-            border: 1px solid #333;
-            border-radius: 4%;
-            font-family: 'SukhumvitSetBold', sans-serif;
+            text-align: center;
         }
 
-        th {
-            background: #ffd369;
-            color: #121212;
-            font-family: 'SukhumvitSetBold', sans-serif;
-        }
-
-        .h2 {
-            font-family: 'SukhumvitSetBold', sans-serif;
-        }
-
-        .card h2 {
-            margin: 0;
-            font-size: 2em;
-            color: #ffd369;
-            font-family: 'SukhumvitSetBold', sans-serif;
+        canvas {
+            background: #222;
+            border-radius: 8px;
         }
     </style>
 </head>
 
 <body>
-    <h1>Dashboard</h1>
+
+    <header>
+        <h1>Lumora School of Magic - Dashboard</h1>
+        <div id="clock"></div>
+    </header>
+
     <div class="stats">
-        <div class="card">
-            <h2 id="totalUsers">0</h2>
-            <p>ผู้ลงทะเบียน</p>
-        </div>
-        <div class="card">
-            <h2 id="checkedIn">0</h2>
-            <p>เข้าแล้ว</p>
-        </div>
-        <div class="card">
-            <h2 id="checkedOut">0</h2>
-            <p>ออกแล้ว</p>
-        </div>
-        <div class="card">
-            <h2 id="currentInside">0</h2>
-            <p>อยู่ในงาน</p>
-        </div>
+        <strong>จำนวนผู้เข้าร่วมทั้งหมด:</strong> <span id="totalCount">0</span>
     </div>
 
-    <canvas id="chart" style="max-width:600px; margin:auto;"></canvas>
-
-    <h2 style="margin-top:30px;"> Log ล่าสุด</h2>
     <table>
         <thead>
             <tr>
-                <th>ID</th>
-                <th>ชื่อ</th>
-                <th>Status</th>
-                <th>เวลา</th>
+                <th>ลำดับ</th>
+                <th>UserID</th>
+                <th>Timestamp</th>
+                <th>วัน</th>
             </tr>
         </thead>
-        <tbody id="logTable"></tbody>
+        <tbody id="tableBody"></tbody>
     </table>
 
+    <canvas id="userChart" width="800" height="400"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4iQkPg5lc0METW6WzDfNlWRuCRQXSJ474yGEWoZoQMZM39ZF24-T4cWu6WYdWrtwl/exec"; // /exec
-        let chartInstance;
+        // 🌟 URL ของ Web App Google Sheet
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPCwYjjPWp1pnPPZvdgLTZx1u_8pUoi5rT2HYz2LTvMHNlORKfgdD_KRRNWd-mSdi9/exec";
 
-        async function loadStats() {
-            const res = await fetch(SCRIPT_URL);
-            const data = await res.json();
+        const totalCountEl = document.getElementById("totalCount");
+        const tableBody = document.getElementById("tableBody");
 
-            document.getElementById("totalUsers").innerText = data.totalUsers;
-            document.getElementById("checkedIn").innerText = data.checkedIn;
-            document.getElementById("checkedOut").innerText = data.checkedOut;
-            document.getElementById("currentInside").innerText = data.currentInside;
+        // นาฬิกาไทย
+        function updateClock() {
+            const now = new Date();
+            const thaiTime = now.toLocaleTimeString('th-TH', { hour12: false });
+            document.getElementById("clock").textContent = "เวลา: " + thaiTime;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(document.getElementById("chart"), {
-                type: "doughnut",
-                data: {
-                    labels: ["เข้าแล้ว", "ออกแล้ว", "อยู่ในงาน"],
-                    datasets: [{
-                        data: [data.checkedIn, data.checkedOut, data.currentInside],
-                        backgroundColor: ["#4caf50", "#e74c3c", "#ffd369"]
-                    }]
+        // Chart.js
+        let ctx = document.getElementById('userChart').getContext('2d');
+        let userChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // เวลา
+                datasets: [
+                    {
+                        label: 'Day 1',
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Day 2',
+                        data: [],
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'เวลา' } },
+                    y: { title: { display: true, text: 'จำนวนผู้เข้าร่วม' }, beginAtZero: true }
                 }
-            });
+            }
+        });
 
-            const tbody = document.getElementById("logTable");
-            tbody.innerHTML = "";
-            data.logs.slice(-10).reverse().forEach(row => {
-                const tr = document.createElement("tr");
-                row.forEach(c => {
-                    const td = document.createElement("td");
-                    td.innerText = c;
-                    tr.appendChild(td);
+        // ดึงข้อมูลและอัปเดตแดชบอร์ด
+        async function updateDashboard() {
+            try {
+                const res = await fetch(WEB_APP_URL);
+                const data = await res.json();
+
+                totalCountEl.textContent = data.count;
+
+                // ตาราง
+                tableBody.innerHTML = "";
+                let day1Count = 0;
+                let day2Count = 0;
+                data.users.forEach((user, index) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `<td>${index + 1}</td><td>${user.userId}</td><td>${user.timestamp}</td><td>${user.day}</td>`;
+                    tableBody.appendChild(tr);
+
+                    if (user.day === "day1") day1Count++;
+                    else if (user.day === "day2") day2Count++;
                 });
-                tbody.appendChild(tr);
-            });
+
+                // กราฟ
+                const timeLabel = new Date().toLocaleTimeString('th-TH', { hour12: false });
+                userChart.data.labels.push(timeLabel);
+                userChart.data.datasets[0].data.push(day1Count);
+                userChart.data.datasets[1].data.push(day2Count);
+
+                if (userChart.data.labels.length > 20) {
+                    userChart.data.labels.shift();
+                    userChart.data.datasets[0].data.shift();
+                    userChart.data.datasets[1].data.shift();
+                }
+                userChart.update();
+
+            } catch (err) {
+                console.error("Error fetching data:", err);
+            }
         }
 
-        loadStats();
-        setInterval(loadStats, 10000);
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
     </script>
+
 </body>
 
 </html>
